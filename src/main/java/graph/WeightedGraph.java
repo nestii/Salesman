@@ -1,14 +1,17 @@
 package graph;
 
+import car.Car;
 import graph.vertex.Client;
 import graph.vertex.Magazine;
 import graph.vertex.Vertex;
+import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
 import org.jgrapht.traverse.DepthFirstIterator;
 import utils.Generator;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Ewa on 04/06/2015.
@@ -64,7 +67,7 @@ public class WeightedGraph implements Graph {
 
         for (int i = 0; i < convertedVertices.size(); i++) {
             for (int j = i; j < convertedVertices.size(); j++) {
-                if(i != j) {
+                if (i != j) {
                     DefaultWeightedEdge weightedEdge = new DefaultWeightedEdge();
                     graph.setEdgeWeight(weightedEdge, Generator.generateRandomInt(MIN_COST, MAX_COST));
                     graph.addEdge(convertedVertices.get(i), convertedVertices.get(j), weightedEdge);
@@ -74,8 +77,7 @@ public class WeightedGraph implements Graph {
     }
 
     public void goThroughGraph(SimpleWeightedGraph<Vertex, DefaultWeightedEdge> graph) {
-        Iterator<Vertex> iter =
-                new DepthFirstIterator<Vertex, DefaultWeightedEdge>(graph);
+        Iterator<Vertex> iter = new DepthFirstIterator<>(graph);
         Vertex vertex;
         while (iter.hasNext()) {
             vertex = iter.next();
@@ -84,6 +86,37 @@ public class WeightedGraph implements Graph {
                             + graph.edgesOf(vertex).toString());
         }
     }
+
+    public List findShortestPath(Vertex v1, Vertex v2, SimpleWeightedGraph<Vertex, DefaultWeightedEdge> graph) {
+
+        return DijkstraShortestPath.findPathBetween(graph, v1, v2);
+    }
+
+
+    public boolean isEverythingDelivered(SimpleWeightedGraph<Vertex, DefaultWeightedEdge> graph) {
+
+        Set<Vertex> vertices = graph.vertexSet();
+        return vertices.stream().allMatch(vertex -> (vertex instanceof Client && ((Client) vertex).getNeed() == 0));
+    }
+
+    // TODO: consider if we have to visit clients, whose needs are <= our current stage -> it means that only one car can deliver needs to this particular client -> more than one car cannot deliver goods to one client
+    public boolean isVertexPossibleToVisit(Vertex vertex, Car car) {
+
+        return (vertex instanceof Client) && ((Client) vertex).getNeed() <= car.getCurrentStage();
+    }
+
+    public List<Vertex> getPossibleVerticesToVisit(Car car, SimpleWeightedGraph<Vertex, DefaultWeightedEdge> graph) {
+
+        Set<Vertex> vertices = graph.vertexSet();
+        return vertices.stream().filter(vertex -> isVertexPossibleToVisit(vertex, car)).collect(Collectors.toList());
+    }
+
+
+    public boolean isMagazineNotEmpty(Vertex vertex) {
+
+        return vertex instanceof Magazine && ((Magazine) vertex).getAvailableGoods() != 0;
+    }
+
 
 
 

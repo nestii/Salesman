@@ -1,6 +1,5 @@
 import graph.WeightedGraph;
 
-
 /**
  * Created by Ewa on 04/06/2015.
  */
@@ -10,5 +9,9 @@ public class Main {
 
         WeightedGraph graph = new WeightedGraph(3,2);
         graph.goThroughGraph(graph.getGraph());
+
+
+        System.out.println(graph.isEverythingDelivered(graph.getGraph()));
+
     }
 }
