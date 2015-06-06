@@ -9,8 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.SimpleWeightedGraph;
 
 import car.Car;
+
+import com.rits.cloning.Cloner;
 
 public class Algorithm {
 	
@@ -26,6 +29,7 @@ public class Algorithm {
 		List<Car> cars = graph.getAllCars();
 		List<Client> clients = graph.getAllClients();
 		List<Vertex> gonnaBeVisitedInThisIteration = new ArrayList<>();
+		List<DefaultWeightedEdge> roadsUsedInIteration = new ArrayList<DefaultWeightedEdge>();
 		
 		for (Car c : cars) {
 			List<Vertex> possibilitiesToVisitForCurrentCar = graph
@@ -35,7 +39,11 @@ public class Algorithm {
 			Vertex vertexToVisit = c.chooseDestination(possibilitiesToVisitForCurrentCar, graph);
 			
 			if (vertexToVisit != null) {
+				graph.getGraph().removeAllEdges(roadsUsedInIteration);
 				List<DefaultWeightedEdge> road = graph.findShortestPath(c.getVertex(), vertexToVisit, graph.getGraph());
+				roadsUsedInIteration.stream().forEach(r -> graph.getGraph().addEdge(graph.getGraph().getEdgeSource(((DefaultWeightedEdge) r)),
+						graph.getGraph().getEdgeTarget(((DefaultWeightedEdge) r)),
+						((DefaultWeightedEdge) r)));
 				List<Vertex> vertexesOnRoad = new ArrayList<>();
 				vertexesOnRoad.add(graph.getGraph().getEdgeSource(road.get(road.size() - 1)));
 				road.stream().forEach(edge -> vertexesOnRoad.add(graph.getGraph().getEdgeTarget(((DefaultWeightedEdge)edge))));
@@ -62,6 +70,7 @@ public class Algorithm {
 					visitatedClient.setNeed(0);
 				}
 				this.totalTransportCost += graph.getGraph().getEdgeWeight(road.get(0));
+				roadsUsedInIteration.add(road.get(0));
 			} //jak jest null to auto pauzuje
 		}
 	}

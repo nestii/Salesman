@@ -107,14 +107,14 @@ public class WeightedGraph implements Graph {
     }
 
     public List findShortestPath(Vertex v1, Vertex v2, SimpleWeightedGraph<Vertex, DefaultWeightedEdge> graph) {
-
         return DijkstraShortestPath.findPathBetween(graph, v1, v2);
     }
 
 
     public boolean isEverythingDelivered(SimpleWeightedGraph<Vertex, DefaultWeightedEdge> graph) {
         return getAllClients().stream().allMatch(vertex -> ((Client) vertex).getNeed() == 0);
-        //return vertices.stream().allMatch(vertex -> (vertex instanceof Client && ((Client) vertex).getNeed() == 0));
+//    	Set<Vertex> verticies = graph.vertexSet();
+//        return verticies.stream().allMatch(vertex -> (vertex instanceof Client && ((Client) vertex).getNeed() == 0));
     }
 
     // TODO: consider if we have to visit clients, whose needs are <= our current stage -> it means that only one car can deliver needs to this particular client -> more than one car cannot deliver goods to one client
