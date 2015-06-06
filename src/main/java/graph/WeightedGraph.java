@@ -1,17 +1,22 @@
 package graph;
 
-import car.Car;
 import graph.vertex.Client;
 import graph.vertex.Magazine;
 import graph.vertex.Vertex;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
 import org.jgrapht.traverse.DepthFirstIterator;
-import utils.Generator;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import utils.Generator;
+import car.Car;
 
 /**
  * Created by Ewa on 04/06/2015.
@@ -26,6 +31,9 @@ public class WeightedGraph implements Graph {
     private static final int MAX_MAGAZINE_GOODS = 70;
     private static final int MIN_COST = 10;
     private static final int MAX_COST = 100;
+    private static final int MIN_CARS_COUNT = 5;
+    private static final int MAX_CARS_COUNT = 10;
+    private static final int CAR_CAPACITY = 50;
 
     public SimpleWeightedGraph<Vertex, DefaultWeightedEdge> getGraph() {
         return graph;
@@ -54,8 +62,19 @@ public class WeightedGraph implements Graph {
 
     private void generateMagazines(int noOfMagazines) {
         for (int i = 0; i < noOfMagazines; i++) {
-            graph.addVertex(new Magazine(Generator.generateRandomInt(MIN_MAGAZINE_GOODS, MAX_MAGAZINE_GOODS)));
+        	Magazine magazineToAdd = new Magazine(Generator.generateRandomInt(MIN_MAGAZINE_GOODS, MAX_MAGAZINE_GOODS));
+            List<Car> carsForMagazine = generateCars(Generator.generateRandomInt(MIN_CARS_COUNT, MAX_CARS_COUNT), magazineToAdd);
+            magazineToAdd.setCars(carsForMagazine);
+        	graph.addVertex(magazineToAdd);
         }
+    }
+    
+    private List<Car> generateCars(int noOfCars, Magazine magazine) {
+    	List<Car> result = new ArrayList<>();
+    	for(int i = 0 ; i < noOfCars ; i++) {
+    		result.add(new Car(CAR_CAPACITY, CAR_CAPACITY, magazine, magazine));
+    	}
+    	return result;
     }
 
     private void buildGraph(int noOfClients, int noOfMagazines) {
@@ -94,18 +113,30 @@ public class WeightedGraph implements Graph {
 
 
     public boolean isEverythingDelivered(SimpleWeightedGraph<Vertex, DefaultWeightedEdge> graph) {
-
-        Set<Vertex> vertices = graph.vertexSet();
-        return vertices.stream().allMatch(vertex -> (vertex instanceof Client && ((Client) vertex).getNeed() == 0));
+        return getAllClients().stream().allMatch(vertex -> ((Client) vertex).getNeed() == 0);
+        //return vertices.stream().allMatch(vertex -> (vertex instanceof Client && ((Client) vertex).getNeed() == 0));
     }
 
     // TODO: consider if we have to visit clients, whose needs are <= our current stage -> it means that only one car can deliver needs to this particular client -> more than one car cannot deliver goods to one client
     public boolean isVertexPossibleToVisit(Vertex vertex, Car car) {
-
-        return (vertex instanceof Client) && ((Client) vertex).getNeed() <= car.getCurrentStage();
+    	if(getAllCars().stream().noneMatch(c -> ((Car)c).getVertex() == vertex)) {
+    		if((vertex instanceof Client) && ((Client) vertex).getNeed() > car.getCurrentStage()) {
+        		return false;
+        	} else if((vertex instanceof Magazine) && ((Magazine) vertex).getAvailableGoods()==0 && car.getCapacity() != car.getCurrentStage()) {
+        		return false;
+        	} 
+        	else return true;
+    	}
+    	return false;
     }
 
     public List<Vertex> getPossibleVerticesToVisit(Car car, SimpleWeightedGraph<Vertex, DefaultWeightedEdge> graph) {
+
+        Set<Vertex> vertices = graph.vertexSet();
+        return vertices.stream().filter(vertex -> isVertexPossibleToVisit(vertex, car)).collect(Collectors.toList());
+    }
+    
+    public List<Vertex> getPossibleMagazinesToVisit(Car car, SimpleWeightedGraph<Vertex, DefaultWeightedEdge> graph) {
 
         Set<Vertex> vertices = graph.vertexSet();
         return vertices.stream().filter(vertex -> isVertexPossibleToVisit(vertex, car)).collect(Collectors.toList());
@@ -117,7 +148,37 @@ public class WeightedGraph implements Graph {
         return vertex instanceof Magazine && ((Magazine) vertex).getAvailableGoods() != 0;
     }
 
-
-
+    public List<Car> getAllCars() {
+    	List<Vertex> magazines = graph.vertexSet().stream().filter( v -> v instanceof Magazine).collect(Collectors.toList());
+    	List<Car> cars = new ArrayList<Car>();
+    	magazines.stream().forEach( m -> cars.addAll(((Magazine) m).getCars()));
+    	return cars;
+    }
+    
+    public List<Client> getAllClients() {
+    	List<Client> result = new ArrayList<>();
+    	graph.vertexSet().stream().filter( v -> v instanceof Client).forEach(client -> result.add((Client)client));
+    	return result;
+    }
+    
+    public List<Magazine> getAllMagazines() {
+    	List<Magazine> result = new ArrayList<>();
+    	graph.vertexSet().stream().filter( v -> v instanceof Magazine).forEach(client -> result.add((Magazine)client));
+    	return result;
+    }
+    
+    public List<Magazine> getAllFreeMagazines(Car car) {
+    	List<Magazine> result = new ArrayList<>();
+    	getPossibleVerticesToVisit(car, graph).stream().filter( v -> v instanceof Magazine && ((Magazine)v).getAvailableGoods() > 0).forEach(client -> result.add((Magazine)client));
+    	return result;
+    }
+    
+    public int calculeteRoadBetween(List<Vertex> vertexes) {
+    	int totalRoad = 0;
+    	for(int i = 0 ; i+1 < vertexes.size() ; i++) {
+    		totalRoad += graph.getEdgeWeight(graph.getEdge(vertexes.get(i), vertexes.get(i+1)));
+    	}
+    	return totalRoad;
+    }
 
 }
