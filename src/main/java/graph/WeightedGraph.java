@@ -1,5 +1,6 @@
 package graph;
 
+import graph.edge.WeightedEdge;
 import graph.vertex.Client;
 import graph.vertex.Magazine;
 import graph.vertex.Vertex;
@@ -34,6 +35,8 @@ public class WeightedGraph implements Graph {
     private static final int MIN_CARS_COUNT = 5;
     private static final int MAX_CARS_COUNT = 10;
     private static final int CAR_CAPACITY = 50;
+
+    public static List<WeightedEdge> edges = new ArrayList<>();
 
     public SimpleWeightedGraph<Vertex, DefaultWeightedEdge> getGraph() {
         return graph;
@@ -88,8 +91,12 @@ public class WeightedGraph implements Graph {
             for (int j = i; j < convertedVertices.size(); j++) {
                 if (i != j) {
                     DefaultWeightedEdge weightedEdge = new DefaultWeightedEdge();
-                    graph.setEdgeWeight(weightedEdge, Generator.generateRandomInt(MIN_COST, MAX_COST));
+                    int weight = Generator.generateRandomInt(MIN_COST, MAX_COST);
+                    graph.setEdgeWeight(weightedEdge, weight);
                     graph.addEdge(convertedVertices.get(i), convertedVertices.get(j), weightedEdge);
+                    WeightedEdge edge = new WeightedEdge();
+                    edge.setWeight(weight);
+                    edges.add(edge);
                 }
             }
         }

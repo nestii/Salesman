@@ -80,7 +80,7 @@ public class Car {
 				road.add(graph.getGraph().getEdgeTarget(firstEdge));
 				if(road.size() > 1 ) {
 					for(int i = listFromDijkstra.size()-2 ; i >= 0 ; ) {
-						DefaultWeightedEdge nextEdge = (DefaultWeightedEdge) listFromDijkstra.get(i);
+                        DefaultWeightedEdge nextEdge = (DefaultWeightedEdge) listFromDijkstra.get(i);
 						road.add(graph.getGraph().getEdgeTarget(nextEdge));
 						i--;
 					}

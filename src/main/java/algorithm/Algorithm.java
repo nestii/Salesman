@@ -9,11 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.graph.SimpleWeightedGraph;
 
 import car.Car;
 
-import com.rits.cloning.Cloner;
 
 public class Algorithm {
 	
@@ -84,6 +82,14 @@ public class Algorithm {
 		for(Car c : graph.getAllCars()) {
 			totalTransportCost += graph.getGraph().getEdgeWeight(graph.getGraph().getEdge(c.getVertex(), c.getMagazine()));
 		}
-		System.out.println("done after: "+iterations+" iterations, with total transport cost: "+this.totalTransportCost);
+		System.out.println("done after: "+iterations+" iterations, with total transport cost: "+this.getTotalTransportCost());
 	}
+
+    public int getTotalTransportCost() {
+        return totalTransportCost;
+    }
+
+    public void setTotalTransportCost(int totalTransportCost) {
+        this.totalTransportCost = totalTransportCost;
+    }
 }
